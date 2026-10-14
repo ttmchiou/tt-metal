@@ -194,3 +194,4 @@ jobs:
       model: ${{ needs.resolve-skus.outputs.model }}
       mlperf-read-only: ${{ inputs.mlperf-read-only != false }}
       tier: "3"
+# MINFRA-1993 fork test
