@@ -158,7 +158,22 @@ def test_git_failure_fails_open(repo: Path, tmp_path: Path) -> None:
     _commit(repo, {".github/workflows/ci.yaml": "on: pull_request\n"}, "change .github")
     result = _run(repo, _event(tmp_path, fork=True, base_sha="0" * 40))
     assert result.returncode == 0
-    assert "git diff failed, skipping" in result.stderr
+    assert "an error stopped the check" in result.stderr
+
+
+def test_missing_git_fails_open(repo: Path, tmp_path: Path) -> None:
+    _commit(repo, {".github/workflows/ci.yaml": "on: pull_request\n"}, "change .github")
+    result = _run(repo, _event(tmp_path, fork=True), {**_refs(), "PATH": ""})
+    assert result.returncode == 0
+    assert "an error stopped the check" in result.stderr
+
+
+def test_unexpected_event_shape_fails_open(repo: Path, tmp_path: Path) -> None:
+    path = tmp_path / "event.json"
+    path.write_text(json.dumps({"pull_request": {"head": ["not", "a", "dict"]}}))
+    result = _run(repo, path, _refs())
+    assert result.returncode == 0
+    assert "an error stopped the check" in result.stderr
 
 
 def test_annotation_only_on_github_actions(repo: Path, tmp_path: Path) -> None:

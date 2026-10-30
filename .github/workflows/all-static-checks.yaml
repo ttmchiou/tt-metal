@@ -66,6 +66,7 @@ jobs:
         if: steps.pre-commit.outcome == 'failure'
         env:
           SUGGESTIONS_POSTED: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork }}
+          FORK_PR: ${{ github.event.pull_request.head.repo.fork == true }}
         run: |
           if [[ "$SUGGESTIONS_POSTED" == "true" ]]; then
             echo "::error::Pre-commit hooks failed. Suggested fixes posted as PR review comments above."
@@ -73,6 +74,10 @@ jobs:
             echo "::error::Pre-commit hooks failed. See the output of the Run Pre-commit step above."
           fi
           echo "To fix locally: pre-commit run --from-ref origin/main --to-ref HEAD"
+          if [[ "$FORK_PR" == "true" ]]; then
+            echo "The check for .github/ changes from forks acts only in CI, so a local run passes it."
+            echo "For that check, use the fix steps in the Run Pre-commit output."
+          fi
           exit 1
   check-spdx-licenses:
     runs-on: ubuntu-latest
